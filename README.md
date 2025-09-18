@@ -36,52 +36,78 @@ STEP-5: Display the obtained cipher text.
 
 ## PROGRAM:
 ~~~
-#include<stdio.h>
-#include<string.h>
-int main()
-{
-    unsigned int a[3][3]={{6,24,1},{13,16,10},{20,17,15}};
-    unsigned int b[3][3]={{8,5,10},{21,8,21},{21,12,8}};
-    int i,j, t=0;
-    unsigned int c[20],d[20];
-    char msg[20];
-    scanf("%s",msg);
-    printf("Enter plain text:%s\n",msg);
-
-    for(i=0;i<strlen(msg);i++)
-    {
-        c[i]=msg[i]-65;
-        printf("%d ",c[i]);
-    }
-    for(i=0;i<3;i++)
-    {
-        t=0;
-        for(j=0;j<3;j++)
-        {
-            t=t+(a[i][j]*c[j]);
-        }
-        d[i]=t%26;
-    }
-    printf("\nEncrypted Cipher Text :");
-    for(i=0;i<3;i++)
-    printf(" %c",d[i]+65);
-    for(i=0;i<3;i++)
-    {
-        t=0;
-        for(j=0;j<3;j++)
-        {
-            t=t+(b[i][j]*d[j]);
-        }
-        c[i]=t%26;
-    }
-    printf("\nDecrypted Cipher Text :");
-    for(i=0;i<3;i++)
-    printf(" %c",c[i]+65);
-    return 0;
-}
+import string
+def create_playfair_table(keyword):
+    keyword = keyword.upper().replace('J', 'I')
+    seen = set()
+    table = []
+    for ch in keyword + string.ascii_uppercase:
+        if ch in seen or ch == 'J':
+            continue
+        seen.add(ch)
+        table.append(ch)
+    return [table[i*5:(i+1)*5] for i in range(5)]
+def positions(table):
+    pos = {}
+    for r, row in enumerate(table):
+        for c, ch in enumerate(row):
+            pos[ch] = (r, c)
+    return pos
+def prepare_text(text):
+    text = text.upper().replace('J','I')
+    text = ''.join([c for c in text if c in string.ascii_uppercase])
+    res, i = [], 0
+    while i < len(text):
+        a = text[i]
+        b = text[i+1] if i+1 < len(text) else 'X'
+        if a == b:
+            res.append(a+'X')
+            i += 1
+        else:
+            res.append(a+b)
+            i += 2
+    return res
+def encrypt_pair(pair, table, pos):
+    a, b = pair
+    ra, ca = pos[a]
+    rb, cb = pos[b]
+    if ra == rb:
+        return table[ra][(ca+1)%5] + table[rb][(cb+1)%5]
+    elif ca == cb:
+        return table[(ra+1)%5][ca] + table[(rb+1)%5][cb]
+    else:
+        return table[ra][cb] + table[rb][ca]
+def decrypt_pair(pair, table, pos):
+    a, b = pair
+    ra, ca = pos[a]
+    rb, cb = pos[b]
+    if ra == rb:
+        return table[ra][(ca-1)%5] + table[rb][(cb-1)%5]
+    elif ca == cb:
+        return table[(ra-1)%5][ca] + table[(rb-1)%5][cb]
+    else:
+        return table[ra][cb] + table[rb][ca]
+def playfair_encrypt(text, keyword):
+    table = create_playfair_table(keyword)
+    pos = positions(table)
+    return ''.join([encrypt_pair(pair, table, pos) for pair in prepare_text(text)])
+def playfair_decrypt(cipher, keyword):
+    table = create_playfair_table(keyword)
+    pos = positions(table)
+    pairs = [cipher[i:i+2] for i in range(0, len(cipher), 2)]
+    return ''.join([decrypt_pair(pair, table, pos) for pair in pairs])
+key_value = "HELLOWORLD" 
+plain_text = "VINEELA SHAIK"
+cipher_text = playfair_encrypt(plain_text, key_value)
+decrypted_text = playfair_decrypt(cipher_text, key_value)
+print("Plain Text:", plain_text)
+print("Key Value:", key_value)
+print("Encrypted Cipher Text:", cipher_text)
+print("Decrypted Cipher Text:", decrypted_text)
 ~~~
 ## OUTPUT:
-<img width="986" height="123" alt="Screenshot 2025-08-29 135756" src="https://github.com/user-attachments/assets/6499c358-aac9-4d05-8042-ae890cb39fa3" />
+<img width="798" height="265" alt="image" src="https://github.com/user-attachments/assets/4e417fb6-e0f0-4840-8230-5cdd5fe4e4e3" />
+
 
 ## RESULT:
 The program was executed successfully.
